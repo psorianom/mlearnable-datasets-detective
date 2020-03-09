@@ -14,6 +14,7 @@ import pandas as pd
 from argopt import argopt
 from joblib import delayed, Parallel
 from sklearn.compose import ColumnTransformer
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score
@@ -29,14 +30,14 @@ np.random.seed(0)
 
 # for csv_id, csv_detective in categorical_continuous.items():
 def mlearn_dataset(csv_id, csv_detective):
-    resource_id = csv_id.split("/")[0]
+    resource_id = csv_id.split("/")[1]
     csv_path = f"/data/datagouv/csv_full/{resource_id}.csv"
-    csv_encoding = csv_detective["encoding"]
-    csv_sep = csv_detective["separator"]
+    csv_encoding = csv_detective[csv_id]["encoding"]
+    csv_sep = csv_detective[csv_id]["separator"]
     df = pd.read_csv(csv_path, encoding=csv_encoding, sep=csv_sep)
 
-    categorical_variables = csv_detective["categorical"]
-    numerical_features = csv_detective["continous"]
+    categorical_features = csv_detective[csv_id]["categorical"]
+    numerical_features = csv_detective[csv_id]["continous"]
 
     # We create the preprocessing pipelines for both numeric and categorical data.
     # numeric_features =
@@ -48,16 +49,24 @@ def mlearn_dataset(csv_id, csv_detective):
         ('imputer', SimpleImputer(strategy='most_frequent')),
         ('onehot', OneHotEncoder(handle_unknown='ignore'))])
 
-    for var in categorical_variables:
-        categorical_variables_copy = set(categorical_variables)
+    other_transformer = Pipeline(steps=[
+        # ('imputer', SimpleImputer(strategy='most_frequent')),
+        ('vect', TfidfVectorizer(min_df=2, ngram_range=(1, 4)))])
+
+    for var in categorical_features:
+        categorical_variables_copy = set(categorical_features)
         X = df.drop(var, axis=1)
         y = df[var]
         categorical_variables_copy.discard(var)
         categorical_features = list(categorical_variables_copy)
+        other_features = np.setdiff1d(X.columns.values, categorical_features + numerical_features).tolist()
+
         preprocessor = ColumnTransformer(
             transformers=[
                 ('num', numeric_transformer, numerical_features),
-                ('cat', categorical_transformer, categorical_features)])
+                ('cat', categorical_transformer, categorical_features),
+                # ('other', other_transformer, other_features[0])
+        ])
 
         # Append classifier to preprocessing pipeline.
         # Now we have a full prediction pipeline.
@@ -69,7 +78,7 @@ def mlearn_dataset(csv_id, csv_detective):
         clf.fit(X_train, y_train)
         y_pred = clf.predict(X_test)
         fscore = f1_score(y_test, y_pred, average="macro")
-        print(f"Predicted Class: {var}.\tModel f-score [macro]: {fscore}.\tDataset: {csv_id}")
+        tqdm.write(f"Predicted Class: {var}.\tModel f-score macro: {fscore}.\tDataset: {csv_id}")
 
 
 ###############################################################################
@@ -97,18 +106,17 @@ def mlearn_dataset(csv_id, csv_detective):
 
 if __name__ == '__main__':
     parser = argopt(__doc__).parse_args()
-    csv_detective_result = parser.i
-    n_jobs = parser.cores
+    csv_detective_path = parser.i
+    n_jobs = parser.num_cores
 
-    categorical, continuous, categorical_continuous = find_mlearnable_datasets(csv_detective_result)
-
+    categorical, continuous, categorical_continuous, csv_detective_json = find_mlearnable_datasets(csv_detective_path)
+    categorical_continuous = {"59591ca4a3a7291dcf9c8150/845bd585-7f17-4e88-a158-be3cd6526168":
+                                  categorical_continuous["59591ca4a3a7291dcf9c8150/845bd585-7f17-4e88-a158-be3cd6526168"]}
     if n_jobs < 2:
         job_output = []
-        for stuff in tqdm(categorical_continuous):
-            job_output.append(mlearn_dataset(stuff))
+        for id_dataset in tqdm(categorical_continuous):
+            job_output.append(mlearn_dataset(id_dataset, csv_detective_json))
     else:
         job_output = Parallel(n_jobs=n_jobs)(
-            delayed(mlearn_dataset)(stuff) for stuff in tqdm(categorical_continuous))
+            delayed(mlearn_dataset)(id_dataset, csv_detective_json) for id_dataset in tqdm(categorical_continuous))
 
-    for csv_id, csv_detective in categorical_continuous.items():
-        mlearn_dataset(csv_id, csv_detective)

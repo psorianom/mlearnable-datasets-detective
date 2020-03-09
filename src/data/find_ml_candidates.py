@@ -64,13 +64,11 @@ def find_mlearnable_datasets(analysis_json_path):
     # 1. Load the file
     csv_detective_json = json.load(open(analysis_json_path))
 
-    # 2. Find categorical and continuous
+    # 2. Find categorical AND continuous
     categorical = find_with_categorical(csv_detective_json)
     continuous = find_with_continuous(csv_detective_json)
     categorical_continuous = find_with_categorical_and_continuous(categorical, continuous)
-    # 59591ca4a3a7291dcf9c8150/6d3428b2-3893-45a1-b404-2522a4e77d41
-    # 3.
-    return categorical, continuous, categorical_continuous
+    return categorical, continuous, categorical_continuous, csv_detective_json
 
 if __name__ == '__main__':
     parser = argopt(__doc__).parse_args()
