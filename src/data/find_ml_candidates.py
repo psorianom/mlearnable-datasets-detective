@@ -74,5 +74,6 @@ if __name__ == '__main__':
     parser = argopt(__doc__).parse_args()
     analysis_json_path = parser.i
 
-    categorical, continuous, categorical_continuous = find_mlearnable_datasets(analysis_json_path)
-    pass
+    categorical, continuous, categorical_continuous, csv_detective_json = find_mlearnable_datasets(analysis_json_path)
+    json.dump({"categorical": categorical, "continuous": continuous, "categorical_continuous": categorical_continuous},
+              open("output/ml_candidates.json", "w"))

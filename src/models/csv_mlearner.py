@@ -53,6 +53,7 @@ def mlearn_dataset(csv_id, csv_detective):
         # ('imputer', SimpleImputer(strategy='most_frequent')),
         ('vect', TfidfVectorizer(min_df=2, ngram_range=(1, 4)))])
 
+    results_dict = {    }
     for var in categorical_features:
         categorical_variables_copy = set(categorical_features)
         X = df.drop(var, axis=1)
@@ -78,7 +79,7 @@ def mlearn_dataset(csv_id, csv_detective):
         clf.fit(X_train, y_train)
         y_pred = clf.predict(X_test)
         fscore = f1_score(y_test, y_pred, average="macro")
-        tqdm.write(f"Predicted Class: {var}.\tModel f-score macro: {fscore}.\tDataset: {csv_id}")
+        # tqdm.write(f"Predicted Class: {var}.\tModel f-score macro: {fscore}.\tDataset: {csv_id}")
 
 
 ###############################################################################
@@ -110,8 +111,8 @@ if __name__ == '__main__':
     n_jobs = parser.num_cores
 
     categorical, continuous, categorical_continuous, csv_detective_json = find_mlearnable_datasets(csv_detective_path)
-    categorical_continuous = {"59591ca4a3a7291dcf9c8150/845bd585-7f17-4e88-a158-be3cd6526168":
-                                  categorical_continuous["59591ca4a3a7291dcf9c8150/845bd585-7f17-4e88-a158-be3cd6526168"]}
+    # categorical_continuous = {"59591ca4a3a7291dcf9c8150/845bd585-7f17-4e88-a158-be3cd6526168":
+    #                               categorical_continuous["59591ca4a3a7291dcf9c8150/845bd585-7f17-4e88-a158-be3cd6526168"]}
     if n_jobs < 2:
         job_output = []
         for id_dataset in tqdm(categorical_continuous):
