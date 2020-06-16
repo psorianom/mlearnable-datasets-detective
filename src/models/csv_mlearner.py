@@ -53,7 +53,7 @@ def mlearn_dataset(csv_id, csv_detective):
         # ('imputer', SimpleImputer(strategy='most_frequent')),
         ('vect', TfidfVectorizer(min_df=2, ngram_range=(1, 4)))])
 
-    results_dict = {    }
+    results_dict = {}
     for var in categorical_features:
         categorical_variables_copy = set(categorical_features)
         X = df.drop(var, axis=1)
