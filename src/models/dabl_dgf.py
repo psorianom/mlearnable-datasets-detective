@@ -62,7 +62,9 @@ def run(csv_file_path, csv_detective_cache):
                               "target_col": target_col,
                               "features_names": "|".join(sc.feature_names_),
                               "date": today,
-                              "nb_classes": len(data[target_col].unique())
+                              "nb_classes": len(data[target_col].unique()),
+                              "nb_lines": data.shape[0],
+                              "nb_columns": data.shape[1],
                               }
                 inner_dict.update(sc.current_best_.to_dict())
                 inner_dict.update({"avg_scores": np.mean(list(sc.current_best_.to_dict().values()))})
