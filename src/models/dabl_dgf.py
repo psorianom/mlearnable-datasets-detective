@@ -38,7 +38,7 @@ def run(csv_file_path, csv_detective_cache):
         encoding = csv_metadata["encoding"]
         sep = csv_metadata["separator"]
     else:
-        encoding = "latin-9"  # bcause why not
+        encoding = "latin-1"  # bcause why not
         sep = ";"
     csv_detective_columns = []
     if "columns" in csv_metadata:
