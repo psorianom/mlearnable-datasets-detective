@@ -95,6 +95,7 @@ def get_csv_detective_metadata(csv_detective_cache: dict, csv_file_path: Path, n
     :param csv_id: The id of the currently analysed csv file
     :return: The metadata of the csv file
     """
+    csv_file_path = Path(csv_file_path)
     csv_id = csv_file_path.stem
     if csv_detective_cache and csv_id in csv_detective_cache:
         return csv_detective_cache[csv_id]
