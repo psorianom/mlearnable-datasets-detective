@@ -43,33 +43,35 @@ def run(csv_file_path, csv_detective_cache):
     csv_detective_columns = []
     if "columns" in csv_metadata:
         csv_detective_columns = [k.strip('"') for k, v in csv_metadata['columns'].items() if "booleen" not in v]
+    try:
+        data: pd.DataFrame = pd.read_csv(csv_file_path.as_posix(), encoding=encoding, sep=sep, error_bad_lines=False)
 
-    data: pd.DataFrame = pd.read_csv(csv_file_path.as_posix(), encoding=encoding, sep=sep)
-    # remove csv_detective columns
-    data = data.drop(csv_detective_columns, axis=1)
-    data_clean, data_types = dabl.clean(data, return_types=True, verbose=3)
-    # dabl.detect_types(data)
-    categorical_variables = data_types[data_types['categorical']].index.values
-    for target_col in categorical_variables:
-        try:
-            if data_clean[target_col].isna().sum():
-                continue
-            print(f"Building models with target variable: {target_col}")
-            sc = dabl.SimpleClassifier(random_state=42).fit(data, target_col=target_col)
-            inner_dict = {"csv_id": csv_id, "task": "classification",
-                          "algorithm": sc.current_best_.name,
-                          "target_col": target_col,
-                          "features_names": "|".join(sc.feature_names_),
-                          "date": today,
-                          "nb_classes": len(data[target_col].unique())
-                          }
-            inner_dict.update(sc.current_best_.to_dict())
-            inner_dict.update({"avg_scores": np.mean(list(sc.current_best_.to_dict().values()))})
-            results_list.append(inner_dict)
-        except Exception as e:
-            tqdm.write(f"Could not analyse file {csv_id} with target col {target_col}. Error {str(e)}")
-            results_list.append(None)
-
+        # remove csv_detective columns
+        data = data.drop(csv_detective_columns, axis=1)
+        data_clean, data_types = dabl.clean(data, return_types=True, verbose=3)
+        # dabl.detect_types(data)
+        categorical_variables = data_types[data_types['categorical']].index.values
+        for target_col in categorical_variables:
+            try:
+                if data_clean[target_col].isna().sum():
+                    continue
+                print(f"Building models with target variable: {target_col}")
+                sc = dabl.SimpleClassifier(random_state=42).fit(data, target_col=target_col)
+                inner_dict = {"csv_id": csv_id, "task": "classification",
+                              "algorithm": sc.current_best_.name,
+                              "target_col": target_col,
+                              "features_names": "|".join(sc.feature_names_),
+                              "date": today,
+                              "nb_classes": len(data[target_col].unique())
+                              }
+                inner_dict.update(sc.current_best_.to_dict())
+                inner_dict.update({"avg_scores": np.mean(list(sc.current_best_.to_dict().values()))})
+                results_list.append(inner_dict)
+            except Exception as e:
+                tqdm.write(f"Could not analyse file {csv_id} with target col {target_col}. Error {str(e)}")
+                results_list.append(None)
+    except:
+        return None
         # dabl.explain(sc)
     return results_list
 
@@ -132,7 +134,7 @@ def main(csv_file_path: Path, n_jobs: int, csv_detective_json: Path):
             if all(v is None for v in dabl_result):  # all contents are None
                 continue
             dabl_analyzed_count += 1
-            job_output.extend(dabl_result)
+            job_output.extend([v for v in dabl_result if v])
 
     else:
         job_output = Parallel(n_jobs=n_jobs)(
