@@ -130,7 +130,7 @@ def main(csv_file_path: Path, n_jobs: int, csv_detective_json: Path):
         job_output = []
         dabl_analyzed_count = 0
         csv_analyzed_total = 0
-        for csv_file_path in tqdm(list_files):
+        for csv_file_path in tqdm(list_files[:1000]):
             csv_analyzed_total += 1
             dabl_result = run(csv_file_path, csv_detective_cache)
             if all(v is None for v in dabl_result):  # all contents are None
