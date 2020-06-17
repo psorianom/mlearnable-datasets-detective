@@ -29,6 +29,7 @@ np.random.seed(42)
 
 
 def run(csv_file_path, csv_detective_cache):
+    tqdm.write(f"Treating {csv_file_path} file")
     csv_id = Path(csv_file_path).stem
     results_list = []
     csv_metadata = get_csv_detective_metadata(csv_detective_cache=csv_detective_cache, csv_file_path=csv_file_path)
