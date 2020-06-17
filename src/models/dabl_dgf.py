@@ -100,8 +100,10 @@ def get_csv_detective_metadata(csv_detective_cache: dict, csv_file_path: Path, n
     csv_id = csv_file_path.stem
     if csv_detective_cache and csv_id in csv_detective_cache:
         return csv_detective_cache[csv_id]
-
-    dict_result = routine(csv_file_path.as_posix(), num_rows=num_rows)
+    try:
+        dict_result = routine(csv_file_path.as_posix(), num_rows=num_rows)
+    except:
+        return {}
     csv_detective_cache[csv_id] = dict_result
     json.dump(csv_detective_cache, open("./data/csv_detective_analysis.json", "w"), indent=4)
     return dict_result
