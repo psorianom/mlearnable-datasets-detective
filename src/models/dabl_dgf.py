@@ -39,7 +39,9 @@ def run(csv_file_path, csv_detective_cache):
     else:
         encoding = "latin-9"  # bcause why not
         sep = ";"
-    csv_detective_columns = [k.strip('"') for k, v in csv_metadata['columns'].items() if "booleen" not in v]
+    csv_detective_columns = []
+    if "columns" in csv_metadata:
+        csv_detective_columns = [k.strip('"') for k, v in csv_metadata['columns'].items() if "booleen" not in v]
 
     data: pd.DataFrame = pd.read_csv(csv_file_path.as_posix(), encoding=encoding, sep=sep)
     # remove csv_detective columns
