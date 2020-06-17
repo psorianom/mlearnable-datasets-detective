@@ -71,7 +71,7 @@ def run(csv_file_path, csv_detective_cache):
                 tqdm.write(f"Could not analyse file {csv_id} with target col {target_col}. Error {str(e)}")
                 results_list.append(None)
     except:
-        return None
+        return []
         # dabl.explain(sc)
     return results_list
 
