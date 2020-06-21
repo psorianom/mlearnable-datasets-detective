@@ -57,11 +57,12 @@ def run(csv_file_path, csv_detective_cache, sample=20000):
         categorical_variables = np.intersect1d(data_types[data_types['categorical']].index.values, csv_metadata['categorical'])
         for target_col in categorical_variables:
             try:
-                classes = "|".join(data_clean[target_col].unique())
-                if data[target_col].isna().sum():  # do not compute anything if there are nans in target var (somewhat extreme though)
+                data_clean_no_nan = data_clean[data_clean[target_col].notna()]
+                if len(data_clean_no_nan) < 100:  # less than 100 examples is too few examples
                     continue
+                classes = "|".join(data_clean_no_nan[target_col].unique())
                 print(f"Building models with target variable: {target_col}")
-                sc = dabl.SimpleClassifier(random_state=42).fit(data_clean, target_col=target_col)
+                sc = dabl.SimpleClassifier(random_state=42).fit(data_clean_no_nan, target_col=target_col)
                 features_names = sc.est_.steps[0][1].get_feature_names()
                 inner_dict = {"csv_id": csv_id, "task": "classification",
                               "algorithm": sc.current_best_.name,
@@ -70,8 +71,7 @@ def run(csv_file_path, csv_detective_cache, sample=20000):
                               "features_names": "|".join(features_names),
                               "classes": classes,
                               "nb_classes": len(data[target_col].unique()),
-                              "nb_lines": data.shape[0],
-                              "nb_columns": data.shape[1],
+                              "nb_lines": data_clean_no_nan.shape[0],
                               "nb_samples": sample,
                               "date": today,
                               }
@@ -84,6 +84,8 @@ def run(csv_file_path, csv_detective_cache, sample=20000):
     except Exception as e:
         tqdm.write(f"Could not analyze file {csv_path}. Error: {e}")
         return None
+    if not result_list:
+        return
     result_df = pd.DataFrame(result_list)
     with open(dabl_analysis_path, "w") as filo:
             result_df.to_csv(filo, header=True, index=False)
