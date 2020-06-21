@@ -28,11 +28,15 @@ from csv_detective.explore_csv import routine
 np.random.seed(42)
 
 
-def run(csv_file_path, csv_detective_cache):
-    tqdm.write(f"Treating {csv_file_path} file")
+def run(csv_file_path, csv_detective_cache, index, sample=20000):
+    tqdm.write(f"\nTreating {csv_file_path} file")
     csv_file_path = Path(csv_file_path)
     csv_id = csv_file_path.stem
-    results_list = []
+    dabl_analysis_path = Path(f"{csv_file_path.as_posix()[:-4]}_dabl.csv")
+    if dabl_analysis_path.exists():
+        tqdm.write(f"File {csv_id} already analyzed: {dabl_analysis_path} already exists")
+        return dabl_analysis_path
+    result_list = []
     csv_metadata = get_csv_detective_metadata(csv_detective_cache=csv_detective_cache, csv_file_path=csv_file_path)
     if csv_metadata and len(csv_metadata) > 1:
         encoding = csv_metadata["encoding"]
@@ -45,37 +49,45 @@ def run(csv_file_path, csv_detective_cache):
         csv_detective_columns = [k.strip('"') for k, v in csv_metadata['columns'].items() if "booleen" not in v]
     try:
         data: pd.DataFrame = pd.read_csv(csv_file_path.as_posix(), encoding=encoding, sep=sep, error_bad_lines=False)
-
         # remove csv_detective columns
         data = data.drop(csv_detective_columns, axis=1)
+        data = data.sample(n=min(sample, len(data)), random_state=42)
         data_clean, data_types = dabl.clean(data, return_types=True, verbose=3)
         # dabl.detect_types(data)
-        categorical_variables = data_types[data_types['categorical']].index.values
+        categorical_variables = np.intersect1d(data_types[data_types['categorical']].index.values, csv_metadata['categorical'])
         for target_col in categorical_variables:
             try:
-                if data_clean[target_col].isna().sum():
+                classes = "|".join(data_clean[target_col].unique())
+                if data[target_col].isna().sum():  # do not compute anything if there are nans in target var (somewhat extreme though)
                     continue
                 print(f"Building models with target variable: {target_col}")
-                sc = dabl.SimpleClassifier(random_state=42).fit(data, target_col=target_col)
+                sc = dabl.SimpleClassifier(random_state=42).fit(data_clean, target_col=target_col)
+                features_names = sc.est_.steps[0][1].get_feature_names()
                 inner_dict = {"csv_id": csv_id, "task": "classification",
                               "algorithm": sc.current_best_.name,
                               "target_col": target_col,
-                              "features_names": "|".join(sc.feature_names_),
-                              "date": today,
+                              "nb_features": len(features_names),
+                              "features_names": "|".join(features_names),
+                              "classes": classes,
                               "nb_classes": len(data[target_col].unique()),
                               "nb_lines": data.shape[0],
                               "nb_columns": data.shape[1],
+                              "nb_samples": sample,
+                              "date": today,
                               }
+
                 inner_dict.update(sc.current_best_.to_dict())
                 inner_dict.update({"avg_scores": np.mean(list(sc.current_best_.to_dict().values()))})
-                results_list.append(inner_dict)
+                result_list.append(inner_dict)
             except Exception as e:
-                tqdm.write(f"Could not analyse file {csv_id} with target col {target_col}. Error {str(e)}")
-                results_list.append(None)
-    except:
-        return []
-        # dabl.explain(sc)
-    return results_list
+                tqdm.write(f"Could not analyze file {csv_id} with target col {target_col}. Error {str(e)}")
+    except Exception as e:
+        tqdm.write(f"Could not analyze file {csv_path}. Error: {e}")
+        return None
+    result_df = pd.DataFrame(result_list)
+    with open(dabl_analysis_path, "w") as filo:
+            result_df.to_csv(filo, header=True, index=False)
+    return dabl_analysis_path
 
 
 def load_csv_detective_cache(csv_detective_json: Path):
@@ -95,7 +107,7 @@ def load_csv_detective_cache(csv_detective_json: Path):
         return {}
 
 
-def get_csv_detective_metadata(csv_detective_cache: dict, csv_file_path: Path, num_rows=500):
+def get_csv_detective_metadata(csv_detective_cache: dict, csv_file_path: Path, num_rows=5000):
     """
     Try and get the already computed meta-data of the csv_id passed, whether from a cached dict or calling
     the csv_detective routines
@@ -128,22 +140,18 @@ def main(csv_file_path: Path, n_jobs: int, csv_detective_json: Path):
 
     if n_jobs < 2:
         job_output = []
-        dabl_analyzed_count = 0
-        csv_analyzed_total = 0
-        for csv_file_path in tqdm(list_files[:1000]):
-            csv_analyzed_total += 1
-            dabl_result = run(csv_file_path, csv_detective_cache)
-            if all(v is None for v in dabl_result):  # all contents are None
-                continue
-            dabl_analyzed_count += 1
-            job_output.extend([v for v in dabl_result if v])
+        for i, csv_file_path in enumerate(tqdm(list_files[:])):
+            dabl_result_paths = run(csv_file_path, csv_detective_cache, i)
+            job_output.append(dabl_result_paths)
 
     else:
         job_output = Parallel(n_jobs=n_jobs)(
             delayed(run)(csv_file_path, csv_detective_cache) for csv_file_path in tqdm(list_files))
 
-    json.dump(job_output, open("./data/dabl_analysis.json", "w"), indent=4)
-    tqdm.write(f"We tried {csv_analyzed_total} csv files, we could do at least one dabl model in {dabl_analyzed_count}"
+    clean_output = [j for j in job_output if j]
+    nb_analyzed = len(clean_output)
+
+    tqdm.write(f"We tried {len(list_files)} csv files, we could do at least one dabl model in {nb_analyzed}"
                f" files.")
 
 
