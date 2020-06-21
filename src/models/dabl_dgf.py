@@ -28,7 +28,7 @@ from csv_detective.explore_csv import routine
 np.random.seed(42)
 
 
-def run(csv_file_path, csv_detective_cache, index, sample=20000):
+def run(csv_file_path, csv_detective_cache, sample=20000):
     tqdm.write(f"\nTreating {csv_file_path} file")
     csv_file_path = Path(csv_file_path)
     csv_id = csv_file_path.stem
@@ -141,7 +141,7 @@ def main(csv_file_path: Path, n_jobs: int, csv_detective_json: Path):
     if n_jobs < 2:
         job_output = []
         for i, csv_file_path in enumerate(tqdm(list_files[:])):
-            dabl_result_paths = run(csv_file_path, csv_detective_cache, i)
+            dabl_result_paths = run(csv_file_path, csv_detective_cache)
             job_output.append(dabl_result_paths)
 
     else:
