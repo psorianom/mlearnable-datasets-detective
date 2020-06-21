@@ -139,6 +139,8 @@ def main(csv_file_path: Path, n_jobs: int, csv_detective_json: Path):
             list_files = [csv_file_path]
         else:
             list_files = glob.glob(csv_file_path.as_posix() + "/**/*.csv", recursive=True)
+    # remove dabl analysis files
+    list_files = [f for f in list_files if "dabl_" not in f]
 
     if n_jobs < 2:
         job_output = []
