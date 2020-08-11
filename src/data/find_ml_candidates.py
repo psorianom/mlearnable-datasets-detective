@@ -10,7 +10,7 @@ Arguments:
 
 import json
 
-from argopt import argopt
+from .money_finder import find_with_money
 
 
 def find_with_categorical(csv_detective_json, min_nb=2, max_nb=20):
@@ -53,17 +53,6 @@ def find_with_continuous(csv_detective_json, min_nb=2, max_nb=40):
 
     return continuous_list
 
-def find_with_money(csv_detective_json, min_nb=2, max_nb=40):
-    money_list = {}
-    for id, results in csv_detective_json.items():
-        if len(results) < 2:  # this csv had some error
-            continue
-        money_columns = results['columns']['money']
-        if len(money_columns) == 0:
-            continue
-        else:
-            money_list[id] = results
-    return money_list
 
 def find_with_categorical_and_continuous(categorical, continuous):
     intersect = set(categorical.keys()).intersection(continuous.keys())
@@ -86,8 +75,8 @@ def find_sexy_mlearnable_datasets(analysis_json_path):
     # 1. Load the file
     csv_detective_json = json.load(open(analysis_json_path))
 
-    # 2. Find categorical AND continuous
-    money = find_with_categorical(csv_detective_json)
+    # 2. Find datasets talking about MONEY
+    money = find_with_money(csv_detective_json)
     return money, csv_detective_json
 
 if __name__ == '__main__':
