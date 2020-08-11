@@ -53,11 +53,23 @@ def find_with_continuous(csv_detective_json, min_nb=2, max_nb=40):
 
     return continuous_list
 
+def find_with_money(csv_detective_json, min_nb=2, max_nb=40):
+    money_list = {}
+    for id, results in csv_detective_json.items():
+        if len(results) < 2:  # this csv had some error
+            continue
+        money_columns = results['columns']['money']
+        if len(money_columns) == 0:
+            continue
+        else:
+            money_list[id] = results
+    return money_list
 
 def find_with_categorical_and_continuous(categorical, continuous):
     intersect = set(categorical.keys()).intersection(continuous.keys())
     intersect_ds = {k: categorical[k] for k in intersect}
     return intersect_ds
+
 
 
 def find_mlearnable_datasets(analysis_json_path):
@@ -70,10 +82,21 @@ def find_mlearnable_datasets(analysis_json_path):
     categorical_continuous = find_with_categorical_and_continuous(categorical, continuous)
     return categorical, continuous, categorical_continuous, csv_detective_json
 
+def find_sexy_mlearnable_datasets(analysis_json_path):
+    # 1. Load the file
+    csv_detective_json = json.load(open(analysis_json_path))
+
+    # 2. Find categorical AND continuous
+    money = find_with_categorical(csv_detective_json)
+    return money, csv_detective_json
+
 if __name__ == '__main__':
+    """
     parser = argopt(__doc__).parse_args()
     analysis_json_path = parser.i
 
     categorical, continuous, categorical_continuous, csv_detective_json = find_mlearnable_datasets(analysis_json_path)
     json.dump({"categorical": categorical, "continuous": continuous, "categorical_continuous": categorical_continuous},
               open("output/ml_candidates.json", "w"))
+"""
+
