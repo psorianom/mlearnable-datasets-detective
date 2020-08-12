@@ -1,0 +1,46 @@
+argopt==0.6.1
+backcall==0.2.0
+boto3==1.14.38
+botocore==1.17.38
+certifi==2020.6.20
+cycler==0.10.0
+dabl==0.1.8
+decorator==4.4.2
+docutils==0.15.2
+ipykernel==5.3.4
+ipython==7.17.0
+ipython-genutils==0.2.0
+jedi==0.17.2
+jmespath==0.10.0
+joblib @ file:///tmp/build/80754af9/joblib_1594236160679/work
+jupyter-client==6.1.6
+jupyter-core==4.6.3
+kiwisolver==1.2.0
+matplotlib @ file:///tmp/build/80754af9/matplotlib-base_1592846008246/work
+mkl-fft==1.1.0
+mkl-random==1.1.1
+mkl-service==2.3.0
+numpy @ file:///tmp/build/80754af9/numpy_and_numpy_base_1596233721170/work
+pandas @ file:///tmp/build/80754af9/pandas_1592841659173/work
+parso==0.7.1
+pexpect==4.8.0
+pickleshare==0.7.5
+prompt-toolkit==3.0.5
+ptyprocess==0.6.0
+Pygments==2.6.1
+pyparsing==2.4.7
+python-dateutil==2.8.1
+pytz==2020.1
+pyzmq==19.0.2
+s3transfer==0.3.3
+scikit-learn @ file:///tmp/build/80754af9/scikit-learn_1592502866053/work
+scipy @ file:///tmp/build/80754af9/scipy_1592930511789/work
+seaborn==0.10.1
+sip==4.19.13
+six==1.15.0
+threadpoolctl @ file:///tmp/tmp9twdgx9k/threadpoolctl-2.1.0-py3-none-any.whl
+tornado==6.0.4
+tqdm @ file:///tmp/build/80754af9/tqdm_1593446365756/work
+traitlets==4.3.3
+urllib3==1.25.10
+wcwidth==0.2.5
