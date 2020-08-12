@@ -76,8 +76,8 @@ def find_sexy_mlearnable_datasets(analysis_json_path):
     csv_detective_json = json.load(open(analysis_json_path))
 
     # 2. Find datasets talking about MONEY
-    money = find_with_money(csv_detective_json)
-    return money, csv_detective_json
+    money_list = find_with_money(csv_detective_json)
+    return money_list, csv_detective_json
 
 if __name__ == '__main__':
     """
