@@ -71,7 +71,7 @@ def find_mlearnable_datasets(analysis_json_path):
     categorical_continuous = find_with_categorical_and_continuous(categorical, continuous)
     return categorical, continuous, categorical_continuous, csv_detective_json
 
-def find_sexy_mlearnable_datasets(analysis_json_path):
+def find_interesting_mlearnable_datasets(analysis_json_path):
     # 1. Load the file
     csv_detective_json = json.load(open(analysis_json_path))
 

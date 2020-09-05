@@ -13,7 +13,7 @@ import argparse
 from datetime import datetime
 import os
 
-from src.data.find_ml_candidates import find_sexy_mlearnable_datasets
+from src.data.find_ml_candidates import find_interesting_mlearnable_datasets
 
 today = datetime.today().strftime('%d_%m_%Y')
 
@@ -70,7 +70,7 @@ def main(csv_file_path: Path, n_jobs: int, csv_detective_path: Path, output_path
     if not output_folder.exists():
         os.makedirs(output_folder)
 
-    money_list, csv_detective_json = find_sexy_mlearnable_datasets(csv_detective_path)
+    money_list, csv_detective_json = find_interesting_mlearnable_datasets(csv_detective_path)
 
     job_output = Parallel(n_jobs=n_jobs)(delayed(run)(csv_meta, list_files, output_folder)
                                          for csv_meta in tqdm(money_list.items()))
