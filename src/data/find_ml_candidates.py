@@ -60,7 +60,6 @@ def find_with_categorical_and_continuous(categorical, continuous):
     return intersect_ds
 
 
-
 def find_mlearnable_datasets(analysis_json_path):
     # 1. Load the file
     csv_detective_json = json.load(open(analysis_json_path))
@@ -71,6 +70,7 @@ def find_mlearnable_datasets(analysis_json_path):
     categorical_continuous = find_with_categorical_and_continuous(categorical, continuous)
     return categorical, continuous, categorical_continuous, csv_detective_json
 
+
 def find_interesting_mlearnable_datasets(analysis_json_path):
     # 1. Load the file
     csv_detective_json = json.load(open(analysis_json_path))
@@ -78,6 +78,7 @@ def find_interesting_mlearnable_datasets(analysis_json_path):
     # 2. Find datasets talking about MONEY
     money_list = find_with_money(csv_detective_json)
     return money_list, csv_detective_json
+
 
 if __name__ == '__main__':
     """
@@ -88,4 +89,3 @@ if __name__ == '__main__':
     json.dump({"categorical": categorical, "continuous": continuous, "categorical_continuous": categorical_continuous},
               open("output/ml_candidates.json", "w"))
 """
-

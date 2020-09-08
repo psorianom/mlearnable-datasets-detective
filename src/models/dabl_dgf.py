@@ -28,7 +28,7 @@ from csv_detective.explore_csv import routine
 np.random.seed(42)
 
 
-def run(csv_file_path, csv_detective_cache, sample=20000):
+def run(csv_file_path, csv_detective_json, sample=20000):
     tqdm.write(f"\nTreating {csv_file_path} file")
     csv_file_path = Path(csv_file_path)
     csv_id = csv_file_path.stem
@@ -37,7 +37,7 @@ def run(csv_file_path, csv_detective_cache, sample=20000):
         tqdm.write(f"File {csv_id} already analyzed: {dabl_analysis_path} already exists")
         return dabl_analysis_path
     result_list = []
-    csv_metadata = get_csv_detective_metadata(csv_detective_cache=csv_detective_cache, csv_file_path=csv_file_path)
+    csv_metadata = get_csv_detective_metadata(csv_detective_json=csv_detective_json, csv_file_path=csv_file_path)
     if csv_metadata and len(csv_metadata) > 1:
         encoding = csv_metadata["encoding"]
         sep = csv_metadata["separator"]
@@ -92,7 +92,7 @@ def run(csv_file_path, csv_detective_cache, sample=20000):
     return dabl_analysis_path
 
 
-def load_csv_detective_cache(csv_detective_json: Path):
+def load_csv_detective_json(csv_detective_json: Path):
     """
     Try and load a JSON file that contains the analysis of a set of csv detectives
     :param csv_detective_json: Path of the analysis JSON file
@@ -109,29 +109,29 @@ def load_csv_detective_cache(csv_detective_json: Path):
         return {}
 
 
-def get_csv_detective_metadata(csv_detective_cache: dict, csv_file_path: Path, num_rows=5000):
+def get_csv_detective_metadata(csv_detective_json: dict, csv_file_path: Path, num_rows=5000):
     """
     Try and get the already computed meta-data of the csv_id passed, whether from a cached dict or calling
     the csv_detective routines
-    :param csv_detective_cache: A key:value dict csv_id:csv_detective_info. Or an empty dict.
+    :param csv_detective_json: A key:value dict csv_id:csv_detective_info. Or an empty dict.
     :param csv_id: The id of the currently analysed csv file
     :return: The metadata of the csv file
     """
     csv_file_path = Path(csv_file_path)
     csv_id = csv_file_path.stem
-    if csv_detective_cache and csv_id in csv_detective_cache:
-        return csv_detective_cache[csv_id]
+    if csv_detective_json and csv_id in csv_detective_json:
+        return csv_detective_json[csv_id]
     try:
         dict_result = routine(csv_file_path.as_posix(), num_rows=num_rows)
     except:
         return {}
-    csv_detective_cache[csv_id] = dict_result
-    json.dump(csv_detective_cache, open("./data/csv_detective_analysis.json", "w"), indent=4)
+    csv_detective_json[csv_id] = dict_result
+    json.dump(csv_detective_json, open("./data/csv_detective_analysis.json", "w"), indent=4)
     return dict_result
 
 
 def main(csv_file_path: Path, n_jobs: int, csv_detective_json: Path):
-    csv_detective_cache = load_csv_detective_cache(csv_detective_json=csv_detective_json) or {}
+    csv_detective_cache = load_csv_detective_json(csv_detective_json=csv_detective_json) or {}
     list_files = []
 
     if csv_file_path.exists():
